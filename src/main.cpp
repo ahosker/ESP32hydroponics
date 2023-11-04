@@ -31,23 +31,6 @@ unsigned long int ph_avg_val; // This variable will hold the average of the pH v
 // PH - Array to store the buffer values
 int ph_buffer_arr[10], temp; // This array will hold the pH values read in a loop, temp is used for swapping during sorting
 
-//-------------------- TDS --------------------
-#define VREF 5.0  // analog reference voltage(Volt) of the ADC
-#define SCOUNT 30 // sum of sample point
-
-// Declare arrays to store the analog values read from the ADC
-int tds_buffer_tds[SCOUNT];
-int tds_buffer_temp[SCOUNT];
-
-// Declare indices for the analog buffer
-int tds_buffer_index = 0;
-int tds_copy_index = 0;
-
-// Declare variables to store the average voltage, TDS value, and temperature
-float tds_average_voltage = 0;
-float tds_value = 0;
-float tds_temperature = 19.9; // current temperature for compensation
-
 // put interger function declarations here:
 int myTemperatureFuction();
 int myPhFuction();
