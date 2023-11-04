@@ -47,6 +47,12 @@ float tds_average_voltage = 0;
 float tds_value = 0;
 float tds_temperature = 19.9; // current temperature for compensation
 
+// put interger function declarations here:
+int myTemperatureFuction();
+int myPhFuction();
+int myTdsFuction();
+int getMedianNum(int bArray[], int iFilterLen);
+
 void setup()
 {
     // Begin serial communication at 115200 baud
