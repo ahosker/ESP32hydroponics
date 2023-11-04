@@ -2,6 +2,7 @@
 #include <Arduino.h> // Arduino core library, provides core functions like delay(), digitalRead(), digitalWrite(), etc.
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <algorithm>
 
 // Define PINs
 #define ESP32_PIN_TEMP 32 // Define the pin number where the temperature sensor is connected
@@ -164,10 +165,13 @@ int myTdsFuction()
             return tds_value;
         }
     }
+
+    // I dont think we want this here, its in the other function
+    return tds_value;
 }
 
 // Function to perform median filtering on the analog values
-int getMedianNum(int bArray[], int iFilterLen)
+int getMedianNumOrig(int bArray[], int iFilterLen)
 {
     // Create a temporary array to store the values for sorting
     int bTab[iFilterLen];
@@ -200,4 +204,19 @@ int getMedianNum(int bArray[], int iFilterLen)
         bTemp = (bTab[iFilterLen / 2] + bTab[iFilterLen / 2 - 1]) / 2;
     }
     return bTemp;
+}
+
+int getMedianNum(int *bArray, int size)
+{
+    std::nth_element(bArray, bArray + size / 2, bArray + size);
+
+    if (size % 2 != 0)
+    {
+        return bArray[size / 2];
+    }
+    else
+    {
+        std::nth_element(bArray, bArray + size / 2 - 1, bArray + size);
+        return (bArray[size / 2 - 1] + bArray[size / 2]) / 2;
+    }
 }
