@@ -52,7 +52,6 @@ float tds_temperature = 19.9; // current temperature for compensation
 int myTemperatureFuction();
 int myPhFuction();
 int myTdsFuction();
-int getMedianNum(int bArray[], int iFilterLen);
 
 void setup()
 {
@@ -120,103 +119,16 @@ int myPhFuction()
 
 int myTdsFuction()
 {
-    // Declare a static variable to store the last time the analog value was sampled
-    static unsigned long analogSampleTimepoint = millis();
+    // 1,807 = Read Value Raw
+    // 1,620 = Read Value, temp adusted
+    // 1,760 = Reading from meter
+    // TDS Target is 750 to 1500
 
-    // If it's been more than 40 milliseconds since the last sample, take a new sample
-    if (millis() - analogSampleTimepoint > 40U)
-    {
-        analogSampleTimepoint = millis();
-        tds_buffer_tds[tds_buffer_index] = analogRead(ESP32_PIN_TDS); // read the analog value and store into the buffer
-        tds_buffer_index++;
-        if (tds_buffer_index == SCOUNT)
-        {
-            tds_buffer_index = 0;
-        }
-    }
+    double tds_temperature_coefficient = 0.02;    // temperature coefficient. 0.02°C^-1 is a commonly used coefficient,
+    double tds_refference_temperature = 25;       // reference temperature in °C
+    double tds_value = analogRead(ESP32_PIN_TDS); // read the analog value from the sensor
 
-    // Declare a static variable to store the last time the TDS value was printed
-    static unsigned long printTimepoint = millis();
+    double tds_value_normalised = tds_value * (1 + tds_temperature_coefficient * (tds_temperature - tds_refference_temperature));
 
-    // If it's been more than 800 milliseconds since the last print, calculate and print a new TDS value
-    if (millis() - printTimepoint > 800U)
-    {
-        printTimepoint = millis();
-        for (tds_copy_index = 0; tds_copy_index < SCOUNT; tds_copy_index++)
-        {
-            tds_buffer_temp[tds_copy_index] = tds_buffer_tds[tds_copy_index];
-
-            // Calculate the average voltage by applying the median filter to the analog values and converting to voltage
-            tds_average_voltage = getMedianNum(tds_buffer_temp, SCOUNT) * (float)VREF / 1024.0;
-
-            // Calculate the compensation coefficient based on the current temperature
-            float compensationCoefficient = 1.0 + 0.02 * (tds_temperature - 25.0);
-
-            // Apply the temperature compensation to the average voltage
-            float compensationVoltage = tds_average_voltage / compensationCoefficient;
-
-            // Calculate the TDS value based on the compensated voltage
-            tds_value = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage - 255.86 * compensationVoltage * compensationVoltage + 857.39 * compensationVoltage) * 0.5;
-
-            // Print the TDS value to the serial monitor
-            // Serial.print("TDS Value:");
-            // Serial.print(tds_value, 0);
-            // Serial.println("ppm");
-            return tds_value;
-        }
-    }
-
-    // I dont think we want this here, its in the other function
-    return tds_value;
-}
-
-// Function to perform median filtering on the analog values
-int getMedianNumOrig(int bArray[], int iFilterLen)
-{
-    // Create a temporary array to store the values for sorting
-    int bTab[iFilterLen];
-    for (byte i = 0; i < iFilterLen; i++)
-        bTab[i] = bArray[i];
-
-    // Sort the array using bubble sort
-    int i, j, bTemp;
-    for (j = 0; j < iFilterLen - 1; j++)
-    {
-        for (i = 0; i < iFilterLen - j - 1; i++)
-        {
-            if (bTab[i] > bTab[i + 1])
-            {
-                // Swap the elements
-                bTemp = bTab[i];
-                bTab[i] = bTab[i + 1];
-                bTab[i + 1] = bTemp;
-            }
-        }
-    }
-
-    // Calculate the median of the sorted array
-    if ((iFilterLen & 1) > 0)
-    {
-        bTemp = bTab[(iFilterLen - 1) / 2];
-    }
-    else
-    {
-        bTemp = (bTab[iFilterLen / 2] + bTab[iFilterLen / 2 - 1]) / 2;
-    }
-    return bTemp;
-}
-
-int getMedianNum(int *bArray, int size)
-{
-    std::nth_element(bArray, bArray + size / 2, bArray + size);
-
-    if (size % 2 != 0)
-    {
-        return bArray[size / 2];
-    }
-    else
-    {
-        std::nth_element(bArray, bArray + size / 2 - 1, bArray + size);
-        return (bArray[size / 2 - 1] + bArray[size / 2]) / 2;
-    }
+    return tds_value_normalised;
 }
