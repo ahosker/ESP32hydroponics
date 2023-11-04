@@ -3,12 +3,10 @@
 #include <DallasTemperature.h>
 
 // Data wire Temperature is plugged into port 32 on the ESP32
-#define ONE_WIRE_BUS_TEMP 32
-
-#define ONE_WIRE_BUS_TPS 34
+#define ESP32_PIN_TEMP 32
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(ONE_WIRE_BUS_TEMP);
+OneWire oneWire(ESP32_PIN_TEMP);
 
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
@@ -31,8 +29,6 @@ void loop()
   int currentTemp = myTemperatureFuction();
   // Print current tempreture
   Serial.print("Temperature is: " + String(currentTemp) + "\r\n");
-
-  // Serial.println(currentTemp);
 }
 
 int myTemperatureFuction()
